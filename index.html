@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dapp Demo Linx Integration</title>
+  <script>
+    // Function to listen if LinxWallet is available, 
+    // must be called very early in loading else the event will be missed.
+    // Alternatively the app can check manually if LinxWallet is
+    // available, look at the 'load' function
+    var account = ""
+    var LinxWalletAvailable = false;
+    window.addEventListener("flutterInAppWebViewPlatformReady", function (event) { LinxWalletAvailable = true});
+    // OnLoad, LinxWallet will look for a function called linxLogin with parameter accountname
+    // It has to be accessable outside a js module
+    function linxLogin(accountName) {
+      account = accountName;
+      if (account == "") {
+        document.getElementById("loginButton").style.display = "contents";
+        document.getElementById("logoutButton").style.display = "none";
+        document.getElementById("welcomeMessage").innerHTML = `Please Login`
+      }
+      else {
+        document.getElementById("logoutButton").style.display = "contents";
+        document.getElementById("loginButton").style.display = "none";
+        document.getElementById("welcomeMessage").innerHTML = `Auto-logged-in ${account.slice(0,6)}...${account.slice(account.length - 5, account.length)}`
+      }
+    }
+  </script>
+  <script src="functions.js" type="module"></script>
+</head>
+<body>
+  <div class="content">
+    <h1 class="title">Linx Demo DAPP</h1>
+    <div id="logoutButton">
+        <button id="btnLogOut" type="button" >Logout</button>
+    </div>
+    <div id="loginButton">
+      <button id="btnLogIn" type="button" >Login</button>
+  </div>
+    <div id="loginPage">
+      <div id="welcomeMessage"></div>
+    </div>
+</div>
+
+</body>
+</html>
