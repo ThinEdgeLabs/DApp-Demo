@@ -10,7 +10,7 @@
     // Function to listen if LinxWallet is available, 
     // must be called very early in loading else the event will be missed.
     // Alternatively the app can check manually if LinxWallet is
-    // available, look at the 'load' function
+    // available, look at the 'loadLinx' function
     var account = ""
     var LinxWalletAvailable = false;
     window.addEventListener("flutterInAppWebViewPlatformReady", function (event) { LinxWalletAvailable = true});
@@ -27,6 +27,8 @@
         document.getElementById("logoutButton").style.display = "contents";
         document.getElementById("loginButton").style.display = "none";
         document.getElementById("welcomeMessage").innerHTML = `Auto-logged-in ${account.slice(0,6)}...${account.slice(account.length - 5, account.length)}`
+        document.getElementById('getBalance').innerHTML= `<button id="btnBalance" type="button" >Get Balance</button>`
+        document.getElementById('signTx').innerHTML= `<button id="signTX" type="button" >Sign Transaction</button>`
       }
     }
   </script>
@@ -40,11 +42,16 @@
     </div>
     <div id="loginButton">
       <button id="btnLogIn" type="button" >Login</button>
-  </div>
+    </div>
     <div id="loginPage">
       <div id="welcomeMessage"></div>
-    </div>
-</div>
-
+    </div>  
+    <br>
+    <div id="getBalance"></div>  
+    <div id="balance"></div>
+    <br>
+    <div id="signTx"></div>  
+    <div id="txResult"></div>
+  </div>
 </body>
 </html>

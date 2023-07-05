@@ -2,43 +2,74 @@
 const linx = (...args) =>window.flutter_inappwebview.callHandler("LinxWallet", ...args) ;
 const console = (...args) =>window.flutter_inappwebview.callHandler("consoleLog", ...args) ;
 
+/**
+ * @param {Object} signingRequest SigningRequest, https://kadena-io.github.io/signing-api/#definition-SigningRequest
+ * @param {string} itemDescription A discription of what is signed for or what is bought, example: "Verify OwnerShip" or "SpynXXX Cats #600"
+ * @param {string} imageUrl String or null, show for example the image of the item that is being bought
+ * @param {number} chainId integer, chain where transactions takes place
+ * @param {string} tokenId Token Symbol, "KDA" or "ADK" etc.
+ * @param {number} amount integer, amount of token needed for the transaction
+ * @param {number} dappFee decimal / float, amount that is charged by the DApp as fee
+ * @param {string} feeTokenId contract id, "coin" | "free.anedak" etc 
+ * @param {boolean} chainless boolean, true if the wallet takes care of gathering balance and sending transaction
+ */
+  export const requestData = function (signingRequest,itemDescription, imageUrl, chainId, tokenId, amount, dappFee, feeTokenId, chainless) {
+    return {
+      signingRequest : signingRequest,
+      itemDescription : itemDescription,
+      imageUrl : imageUrl,
+      chainId : chainId,
+      tokenId : tokenId,
+      amount : amount,
+      dappFee : dappFee,
+      feeTokenId : feeTokenId,
+      chainless : chainless
+    }
+  }
+
 
 /**
- * @param {string} request Type of request for the wallet
+ * @param {string} request Type of request for the wallet: Send, Swap, Mint, Buy, Balance
  * @param {string} description Description that is shown to the user
- * @param {Object} data Dataobject that is send to the wallet, can differ per request
+ * @param {Object} requestData Object that has all the transactional data the wallet needs to know 
  * @param {bool} needsApproval Boolean if user should manually approve the request
- * @param {bool} chainless Boolean if transaction should be chainless
  */
-const newRequest = function (request, description, data, needsApproval, chainless) {
+const newRequest = function (request, description, requestData, needsApproval) {
   return {
-    request : request,
-    description : description,
-    data : data,
-    needsApproval : needsApproval,
-    chainless : chainless
+    request : request, // Example: "Buy"
+    description : description, // Example: "Wizard #1477"
+    data : requestData,
+    needsApproval : needsApproval, // Example true
   }
 }
 
-// Requires a request as mentioned above, where data needs to consist of a SigningRequest
-export async function sign(request) {
-  const signRequest = await linx(request)
+export async function send(sendRequest, description) {
+  const signRequest = await linx(newRequest("Send", description, sendRequest, true))
   return signRequest
+} 
+
+export async function buy(buyRequest, description) {
+  const signRequest = await linx(newRequest("Buy", description, buyRequest, true))
+  return signRequest
+} 
+
+export async function mint(mintRequest, description) {
+  const signRequest = await linx(newRequest("Mint", description, mintRequest, true))
+  return signRequest
+} 
+
+export async function swap(swapToken) {
+  await linx(newRequest("Swap", "buy token", {token : swapToken}, false));
 }
 
-export async function requestSwap(token) {
-  const balanceRequest = await linx(newRequest("swap", "buy token", {token : token}, {}, false));
-}
-
-// Param is an Array of tokens, if empty returns all tokens with balance, example ["coin", "free.anedak"]
 export async function balance(tokenList) {
-  const balanceRequest = await linx(newRequest("balance", "get balance", {tokens : tokenList}, {}, false));
+  const balanceRequest = await linx(newRequest("Balance", "get balance",{tokens : tokenList},false));
   return balanceRequest
 }
 
 // Returns active account on wallet
 export async function getAccount() {
-  const account = await linx(newRequest("address", "get address", {}, {}, false));
+  const account = await linx(newRequest("Account", "get address", {}, false));
   return account;
 }
 
@@ -49,7 +80,7 @@ export function logs(message) {
 
 // Checks if there is an active connection between browser and LinxWallet
 export async function isConnected() {
-  const result = await linx(newRequest("connected", "get address", {}, false, false))
+  const result = await linx(newRequest("Connected", "get address", {}, false, false))
   if (result == null ){
     return false;
   } 

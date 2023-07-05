@@ -4,7 +4,11 @@ var balances = [];
 
 document.getElementById("btnLogOut").addEventListener("click", logout, false);
 
-document.getElementById("btnLogIn").addEventListener("click", load, false);
+document.getElementById("btnLogIn").addEventListener("click", loadLinx, false);
+
+document.getElementById("btnBalance").addEventListener("click", getBalance, false);
+
+document.getElementById("signTX").addEventListener("click", sendSignRequest, false);
 
 window.onloadstart = loadLinx();
 
@@ -26,6 +30,7 @@ async function loadLinx() {
         document.getElementById("logoutButton").style.display = "contents";
         document.getElementById("loginButton").style.display = "none";
         document.getElementById("welcomeMessage").innerHTML = `Welcome ${account.slice(0,6)}...${account.slice(account.length - 5, account.length)}`
+        document.getElementById('getBalance').innerHTML= `<button id="btnBalance" type="button" >Get Balance</button>`
       }
     }
   }
@@ -36,6 +41,7 @@ function logout() {
   account = "";
   document.getElementById("loginButton").style.display = "contents";
   document.getElementById("logoutButton").style.display = "none";
+  document.getElementById("getBalance").style.display = "none";
   document.getElementById("welcomeMessage").innerHTML = `Please Login`
 }
 
@@ -44,36 +50,107 @@ async function requestLogin() {
   const accountName = await Linx.getAccount()
   if (accountName != null) {
     account = accountName;
+    document.getElementById("welcomeMessage").innerHTML = `Welcome ${account.slice(0,6)}...${account.slice(account.length - 5, account.length)}`
+    document.getElementById("getBalance").style.display = "contents";
   }
 }
 
 // Request the wallet for balance with a list of tokens
 // The response will give, for the requested token(s), or when empty all tokens with balance:
-/*
-  [
-    {
-      token : "coin",       (string, contract name)
-      totalBalance: 100.0,  (double / float, total balance on all chains)
-      chains: [             (Array of objects with chainId (int) and balance (double/float))
-        { 1 : 50.0},
-        { 5 : 20.0},
-        { 8 : 30.0}
-      ]
-    }
-  ]
-*/
 async function getBalance() {
-  const balance = await Linx.balance(["coin"])
+  const tokenList = ["coin"];
+  const balance = await Linx.balance(tokenList)
   if (balance != null && balance.error != null) {
     alert(balance.error);
   } else if (balance != null) {
     balances = balance;
   }
+  document.getElementById("balance").innerHTML = `Total KDA Balance: ${balances[0].totalBalance}`
 }
 
 // Function where you send the user to the swap screen to buy set token
 function requestSwap() {
-  Linx.requestSwap("free.anedak")
+  Linx.swap("free.anedak")
+}
+
+// Example for chainless buy, WALLET RETURNS REQUESTKEYS
+// In this example in the wallet is only 1 kda on chain 0
+async function sendSignRequest() {
+  const signingRequest = {
+    code : `(validate-principal (read-keyset 'keyset) "${account}")`,
+    data : {
+      keyset : {
+        keys : [account.slice(2)]
+      }
+    },
+    caps : [{
+      role: "pay gas",
+      description: "pay for gas",
+      cap : {
+        args : [],
+        name: "coin.GAS"
+      }},
+    ],
+    nonce : Date.now().toLocaleString,
+    chainId : "0",
+    gasLimit: 1200,
+    ttl : 600,
+    sender: account,
+    extraSigners : []
+    }
+  const request = Linx.requestData(signingRequest, "Verify Account",null, 0, "KDA", 0.0, 0.0, null, false);
+  const result = await Linx.send(request, "Login to verify ownership of account")
+  // Show sig hash
+  if (result.error) {
+    alert(result.error)
+  } else {
+    alert(result.hash)
+  }
+}
+
+// Example for chainless buy, WALLET RETURNS REQUESTKEYS
+// In this example in the wallet is only 1 kda on chain 0
+function sendBuyRequest() {
+  const signingRequest = {
+    code : `(coin.transfer "${accountName}" "xxx" 2.0)`,
+    data : {
+      keyset : {
+        keys : [accountName.slice(2)]
+      }
+    },
+    caps : [{
+      role: "pay gas",
+      description: "pay for gas",
+      cap : {
+        args : [],
+        name: "coin.GAS"
+      }},
+    {
+      role: "Transfer",
+      description: "Transfer KDA",
+      cap : {
+        name : "coin.TRANSFER",
+        args : [accountName, "xxx", 2.0]
+      }
+    }
+    ],
+    nonce : Date.now().toLocaleString,
+    chainId : "0",
+    gasLimit: 1200,
+    ttl : 600,
+    sender: accountName,
+    extraSigners : []
+    }
+  const request = Linx.requestData(signingRequest, null, 0, "coin", 2.0, 0.0, null, true);
+  const result = Linx.buy(request, "Send 2 KDA as Chainless Test")
+  // The result will be an object with 2 requestkeys, 1 for gathering balance and the second for the above transaction
+  /**
+  {
+    balance_requestkeys: [],
+    tx_requestkey : []
+  }
+  */
+  alert(result);
 }
 
 // General example function to verify the wallet owns the given account
