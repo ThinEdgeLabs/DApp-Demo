@@ -28,6 +28,7 @@
         document.getElementById("loginButton").style.display = "none";
         document.getElementById("welcomeMessage").innerHTML = `Auto-logged-in ${account.slice(0,6)}...${account.slice(account.length - 5, account.length)}`
         document.getElementById('getBalance').innerHTML= `<button id="btnBalance" type="button" >Get Balance</button>`
+        document.getElementById('getNetwork').innerHTML= `<button id="btnNetwork" type="button" >Get Network</button>`
         document.getElementById('signTx').innerHTML= `<button id="signTX" type="button" >Sign Transaction</button>`
       }
     }
@@ -49,6 +50,9 @@
     <br>
     <div id="getBalance"></div>  
     <div id="balance"></div>
+    <br>
+    <div id="getNetwork"></div>  
+    <div id="network"></div>
     <br>
     <div id="signTx"></div>  
     <div id="txResult"></div>

@@ -67,6 +67,11 @@ export async function balance(tokenList) {
   return balanceRequest
 }
 
+export async function network() {
+  const networkRequest = await linx(newRequest("Network", "get current network", {},false ))
+  return networkRequest
+}
+
 // Returns active account on wallet
 export async function getAccount() {
   const account = await linx(newRequest("Account", "get address", {}, false));

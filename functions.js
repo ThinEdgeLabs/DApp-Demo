@@ -8,6 +8,8 @@ document.getElementById("btnLogIn").addEventListener("click", loadLinx, false);
 
 document.getElementById("btnBalance").addEventListener("click", getBalance, false);
 
+document.getElementById("btnNetwork").addEventListener("click", getNetwork, false);
+
 document.getElementById("signTX").addEventListener("click", sendSignRequest, false);
 
 window.onloadstart = loadLinx();
@@ -67,6 +69,14 @@ async function getBalance() {
   }
   document.getElementById("balance").innerHTML = `Total KDA Balance: ${balances[0].totalBalance}`
 }
+
+// Request the current network from the wallet
+// Response will be a string of the current network name
+async function getNetwork() {
+  const network = await Linx.network();
+  document.getElementById("network").innerHTML = `Current Network: ${network}`
+}
+
 
 // Function where you send the user to the swap screen to buy set token
 function requestSwap() {
